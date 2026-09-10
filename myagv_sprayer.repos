@@ -5,7 +5,7 @@ repositories:
   # for `ros2 topic echo /nav/state` and for anything that inspects the Jetson.
   sprayer_msgs:
     type: git
-    url: https://github.com/CHANGEME/myagv_sprayer_msgs.git
+    url: https://github.com/irfahadi/myagv_sprayer_msgs.git
     version: main
   # Elephant Robotics myAGV ROS 2 driver (odometry, /cmd_vel, battery, IMU)
   myagv_ros2:
@@ -16,4 +16,4 @@ repositories:
   ydlidar_ros2_driver:
     type: git
     url: https://github.com/YDLIDAR/ydlidar_ros2_driver.git
-    version: humble
+    version: foxy
