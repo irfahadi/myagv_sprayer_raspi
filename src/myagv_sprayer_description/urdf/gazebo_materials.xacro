@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <gazebo reference="$(arg prefix)base_link"><material>Gazebo/SkyBlue</material></gazebo>
+  <gazebo reference="$(arg prefix)lidar_link"><material>Gazebo/Black</material></gazebo>
+  <gazebo reference="$(arg prefix)camera_link"><material>Gazebo/Black</material></gazebo>
+  <gazebo reference="$(arg prefix)payload_plate_link"><material>Gazebo/Grey</material></gazebo>
+  <gazebo reference="$(arg prefix)lipo_link"><material>Gazebo/Yellow</material></gazebo>
+  <gazebo reference="$(arg prefix)buck_converter_link"><material>Gazebo/Orange</material></gazebo>
+  <gazebo reference="$(arg prefix)relay_link"><material>Gazebo/Indigo</material></gazebo>
+  <gazebo reference="$(arg prefix)jetson_link"><material>Gazebo/Green</material></gazebo>
+  <gazebo reference="$(arg prefix)tank_link"><material>Gazebo/BlueTransparent</material></gazebo>
+  <gazebo reference="$(arg prefix)tank_level_sensor_link"><material>Gazebo/Black</material></gazebo>
+  <gazebo reference="$(arg prefix)pump_link"><material>Gazebo/Blue</material></gazebo>
+  <gazebo reference="$(arg prefix)nozzle_mast_link"><material>Gazebo/Grey</material></gazebo>
+  <gazebo reference="$(arg prefix)nozzle_link"><material>Gazebo/Turquoise</material></gazebo>
+  <gazebo reference="$(arg prefix)front_left_wheel_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="$(arg prefix)front_right_wheel_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="$(arg prefix)rear_left_wheel_link"><material>Gazebo/DarkGrey</material></gazebo>
+  <gazebo reference="$(arg prefix)rear_right_wheel_link"><material>Gazebo/DarkGrey</material></gazebo>
+</robot>

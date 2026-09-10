@@ -1,0 +1,16 @@
+camera_stream_node:
+  ros__parameters:
+    source: v4l2            # v4l2 (real robot) | topic (Gazebo)
+    device: /dev/video0
+    input_topic: /camera/image_raw
+    width: 640
+    height: 480
+    fps: 10.0
+    jpeg_quality: 75
+    frame_id: camera_optical_frame
+    # Intrinsics of the stock myAGV camera at 640x480 - replace with your
+    # own calibration (ros2 run camera_calibration cameracalibrator ...)
+    fx: 520.0
+    fy: 520.0
+    cx: 320.0
+    cy: 240.0

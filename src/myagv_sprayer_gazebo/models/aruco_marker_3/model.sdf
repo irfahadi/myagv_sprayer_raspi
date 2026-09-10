@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <model name="aruco_marker_3">
+    <static>true</static>
+    <link name="link">
+      <!-- post -->
+      <visual name="post">
+        <pose>0 0 0.150 0 0 0</pose>
+        <geometry><cylinder><radius>0.008</radius><length>0.300</length></cylinder></geometry>
+        <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.4 0.4 0.4 1</diffuse></material>
+      </visual>
+      <!-- printed sheet; the texture faces +x -->
+      <visual name="board">
+        <pose>0.004 0 0.300 0 0 0</pose>
+        <geometry><box><size>0.002 0.140 0.140</size></box></geometry>
+        <material>
+          <script>
+            <uri>model://aruco_marker_3/materials/scripts</uri>
+            <uri>model://aruco_marker_3/materials/textures</uri>
+            <name>Aruco/Marker3</name>
+          </script>
+        </material>
+      </visual>
+      <collision name="collision">
+        <pose>0 0 0.150 0 0 0</pose>
+        <geometry><box><size>0.02 0.140 0.300</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

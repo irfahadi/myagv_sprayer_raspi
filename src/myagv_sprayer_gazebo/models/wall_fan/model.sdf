@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!-- Wall-mounted ventilation fan. Model +x points INTO the room (away from the wall). -->
+<sdf version="1.7">
+  <model name="wall_fan">
+    <static>true</static>
+    <link name="link">
+      <!-- wall bracket plate -->
+      <visual name="bracket">
+        <pose>-0.02 0 0 0 0 0</pose>
+        <geometry><box><size>0.04 0.14 0.30</size></box></geometry>
+        <material><ambient>0.35 0.35 0.35 1</ambient><diffuse>0.45 0.45 0.45 1</diffuse></material>
+      </visual>
+      <!-- arm -->
+      <visual name="arm">
+        <pose>0.08 0 0 0 1.5708 0</pose>
+        <geometry><cylinder><radius>0.015</radius><length>0.16</length></cylinder></geometry>
+        <material><ambient>0.35 0.35 0.35 1</ambient><diffuse>0.5 0.5 0.5 1</diffuse></material>
+      </visual>
+      <!-- guard ring / cage -->
+      <visual name="cage">
+        <pose>0.20 0 0 0 1.5708 0</pose>
+        <geometry><cylinder><radius>0.225</radius><length>0.08</length></cylinder></geometry>
+        <transparency>0.35</transparency>
+        <material><ambient>0.5 0.5 0.52 1</ambient><diffuse>0.7 0.7 0.72 1</diffuse><specular>0.6 0.6 0.6 1</specular></material>
+      </visual>
+      <!-- hub / motor -->
+      <visual name="hub">
+        <pose>0.16 0 0 0 1.5708 0</pose>
+        <geometry><cylinder><radius>0.06</radius><length>0.12</length></cylinder></geometry>
+        <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+      </visual>
+      <!-- three blades -->
+      <visual name="blade_0">
+        <pose>0.21 0 0 0 0 0</pose>
+        <geometry><box><size>0.01 0.40 0.10</size></box></geometry>
+        <material><ambient>0.2 0.2 0.22 1</ambient><diffuse>0.3 0.3 0.33 1</diffuse></material>
+      </visual>
+      <visual name="blade_1">
+        <pose>0.21 0 0 1.0472 0 0</pose>
+        <geometry><box><size>0.01 0.40 0.10</size></box></geometry>
+        <material><ambient>0.2 0.2 0.22 1</ambient><diffuse>0.3 0.3 0.33 1</diffuse></material>
+      </visual>
+      <visual name="blade_2">
+        <pose>0.21 0 0 2.0944 0 0</pose>
+        <geometry><box><size>0.01 0.40 0.10</size></box></geometry>
+        <material><ambient>0.2 0.2 0.22 1</ambient><diffuse>0.3 0.3 0.33 1</diffuse></material>
+      </visual>
+      <collision name="collision">
+        <pose>0.12 0 0 0 0 0</pose>
+        <geometry><box><size>0.26 0.46 0.46</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

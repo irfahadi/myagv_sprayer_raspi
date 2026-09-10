@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<!--
+  Sprayer payload mounted on the myAGV top deck.
+
+  Component placement mirrors the wiring diagram:
+    - rear-left  : LiPo 3S 11.1 V  (payload power)
+    - rear-right : buck converter 12V -> 5.1V (Jetson supply) + relay 1-ch
+    - centre     : Jetson Nano (vision node)
+    - front-left : 1 L tank + ultrasonic level sensor on the lid
+    - front-right: 12 V DC diaphragm pump
+    - front mast : TeeJet hollow-cone nozzle, tilted down towards the tray
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="payload_box" params="prefix name parent x y z sx sy sz mass material">
+    <link name="${prefix}${name}_link">
+      <visual>
+        <geometry><box size="${sx} ${sy} ${sz}"/></geometry>
+        <material name="${material}"/>
+      </visual>
+      <collision>
+        <geometry><box size="${sx} ${sy} ${sz}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${mass}"/>
+        <xacro:box_inertia m="${mass}" x="${sx}" y="${sy}" z="${sz}"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}${name}_link"/>
+      <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="sprayer_payload" params="prefix parent">
+
+    <!-- payload mounting plate (acrylic / aluminium) -->
+    <xacro:payload_box prefix="${prefix}" name="payload_plate" parent="${parent}"
+        x="0.0" y="0.0" z="${deck_z + 0.004}" sx="0.30" sy="0.23" sz="0.008" mass="0.25" material="agv_grey"/>
+
+    <!-- LiPo 3S 2200 mAh -->
+    <xacro:payload_box prefix="${prefix}" name="lipo" parent="${prefix}payload_plate_link"
+        x="-0.10" y="0.06" z="0.020" sx="0.105" sy="0.035" sz="0.030" mass="0.19" material="lipo_yellow"/>
+
+    <!-- Buck converter 12V -> 5.1V / 4A -->
+    <xacro:payload_box prefix="${prefix}" name="buck_converter" parent="${prefix}payload_plate_link"
+        x="-0.10" y="-0.07" z="0.012" sx="0.060" sy="0.045" sz="0.015" mass="0.03" material="buck_orange"/>
+
+    <!-- Relay module 1-ch 5V -->
+    <xacro:payload_box prefix="${prefix}" name="relay" parent="${prefix}payload_plate_link"
+        x="-0.10" y="-0.02" z="0.012" sx="0.050" sy="0.026" sz="0.018" mass="0.02" material="relay_indigo"/>
+
+    <!-- Jetson Nano dev-kit (100 x 80 mm) -->
+    <xacro:payload_box prefix="${prefix}" name="jetson" parent="${prefix}payload_plate_link"
+        x="0.0" y="0.0" z="0.020" sx="0.100" sy="0.080" sz="0.032" mass="0.25" material="jetson_green"/>
+
+    <!-- 1 L cylindrical tank -->
+    <link name="${prefix}tank_link">
+      <visual>
+        <geometry><cylinder radius="${tank_radius}" length="${tank_height}"/></geometry>
+        <material name="tank_cyan"/>
+      </visual>
+      <collision>
+        <geometry><cylinder radius="${tank_radius}" length="${tank_height}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="1.1"/>
+        <xacro:cylinder_inertia m="1.1" r="${tank_radius}" h="${tank_height}"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}tank_joint" type="fixed">
+      <parent link="${prefix}payload_plate_link"/>
+      <child  link="${prefix}tank_link"/>
+      <origin xyz="0.085 0.060 ${tank_height/2 + 0.004}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- HC-SR04 ultrasonic level sensor in the tank lid, looking down -->
+    <link name="${prefix}tank_level_sensor_link">
+      <visual>
+        <geometry><box size="0.045 0.020 0.015"/></geometry>
+        <material name="agv_dark"/>
+      </visual>
+      <inertial>
+        <mass value="0.01"/>
+        <xacro:box_inertia m="0.01" x="0.045" y="0.020" z="0.015"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}tank_level_sensor_joint" type="fixed">
+      <parent link="${prefix}tank_link"/>
+      <child  link="${prefix}tank_level_sensor_link"/>
+      <origin xyz="0 0 ${tank_height/2 + 0.008}" rpy="0 ${pi/2} 0"/>
+    </joint>
+
+    <!-- 12 V mini diaphragm pump -->
+    <xacro:payload_box prefix="${prefix}" name="pump" parent="${prefix}payload_plate_link"
+        x="0.085" y="-0.060" z="0.025" sx="0.070" sy="0.040" sz="0.042" mass="0.20" material="pump_blue"/>
+
+    <!-- Nozzle mast: vertical rod on the front edge -->
+    <link name="${prefix}nozzle_mast_link">
+      <visual>
+        <origin xyz="0 0 ${(mast_top_z - deck_z)/2}" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.006" length="${mast_top_z - deck_z}"/></geometry>
+        <material name="agv_grey"/>
+      </visual>
+      <inertial>
+        <mass value="0.05"/>
+        <xacro:cylinder_inertia m="0.05" r="0.006" h="${mast_top_z - deck_z}"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}nozzle_mast_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}nozzle_mast_link"/>
+      <origin xyz="${nozzle_x - 0.05} 0 ${deck_z}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- TeeJet hollow-cone nozzle body. +x of nozzle_link is the spray axis. -->
+    <link name="${prefix}nozzle_link">
+      <visual>
+        <origin xyz="0.012 0 0" rpy="0 ${pi/2} 0"/>
+        <geometry><cylinder radius="0.008" length="0.025"/></geometry>
+        <material name="nozzle_teal"/>
+      </visual>
+      <inertial>
+        <mass value="0.02"/>
+        <xacro:cylinder_inertia m="0.02" r="0.008" h="0.025"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}nozzle_joint" type="fixed">
+      <parent link="${prefix}nozzle_mast_link"/>
+      <child  link="${prefix}nozzle_link"/>
+      <origin xyz="0.05 0 ${nozzle_z - deck_z}" rpy="0 ${nozzle_pitch} 0"/>
+    </joint>
+
+    <!-- spray_frame = point ~0.25 m along the spray axis, used to visualise the cone -->
+    <link name="${prefix}spray_frame"/>
+    <joint name="${prefix}spray_frame_joint" type="fixed">
+      <parent link="${prefix}nozzle_link"/>
+      <child  link="${prefix}spray_frame"/>
+      <origin xyz="0.25 0 0" rpy="0 0 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>

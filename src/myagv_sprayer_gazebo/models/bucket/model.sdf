@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- A bucket left in the aisle: the classic "unmapped obstacle" of Scenario C. -->
+<sdf version="1.7">
+  <model name="bucket">
+    <static>true</static>
+    <link name="link">
+      <visual name="body">
+        <pose>0 0 0.14 0 0 0</pose>
+        <geometry><cylinder><radius>0.16</radius><length>0.28</length></cylinder></geometry>
+        <material><ambient>0.6 0.15 0.12 1</ambient><diffuse>0.8 0.2 0.15 1</diffuse></material>
+      </visual>
+      <collision name="collision">
+        <pose>0 0 0.14 0 0 0</pose>
+        <geometry><cylinder><radius>0.16</radius><length>0.28</length></cylinder></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

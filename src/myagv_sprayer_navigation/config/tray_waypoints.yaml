@@ -1,0 +1,27 @@
+# Parking poses in the `map` frame (origin = room centre, x east, y north).
+# The robot parks ~0.45 m from the tray edge, nozzle facing the tray.
+# Consumed by sprayer_nav (NavigateToTray goals), sprayer_docking (marker ids)
+# and sprayer_mission. The RasPi keeps an identical copy for its RViz markers.
+#
+# Tray centres  : NW (-2.2, 2.2)  NE (2.2, 2.2)  SW (-2.6, -2.2)  SE (2.6, -2.2)
+# Tray footprint: 1.20 x 0.70 m, rim height 0.25 m
+
+tray_waypoints:
+  ros__parameters:
+    frame_id: map
+    home:            [ 0.0, -2.3,  1.5708]   # just inside the main entrance, facing north
+    refill:          [ 0.0, -2.3, -1.5708]   # same spot, facing the door (tank refill)
+    marker_ids:     [1, 2, 3, 4]        # ArUco DICT_4X4_50, one per tray
+    tray_names:      ["baki_1_barat_laut", "baki_2_timur_laut", "baki_3_barat_daya", "baki_4_timur_daya"]
+    # x, y, yaw
+    baki_1_barat_laut: [-2.2,  1.40,  1.5708]
+    baki_2_timur_laut: [ 2.2,  1.40,  1.5708]
+    baki_3_barat_daya: [-2.6, -1.40, -1.5708]
+    baki_4_timur_daya: [ 2.6, -1.40, -1.5708]
+    # tray centre (for TF / marker visualisation)
+    baki_1_barat_laut_centre: [-2.2,  2.2]
+    baki_2_timur_laut_centre: [ 2.2,  2.2]
+    baki_3_barat_daya_centre: [-2.6, -2.2]
+    baki_4_timur_daya_centre: [ 2.6, -2.2]
+    # visiting order: NW -> NE -> SE -> SW (clockwise loop, ends near the door)
+    order: ["baki_1_barat_laut", "baki_2_timur_laut", "baki_4_timur_daya", "baki_3_barat_daya"]

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- Holonomic (mecanum) drive for Gazebo Classic.
+     The real myAGV firmware accepts geometry_msgs/Twist with vx, vy, wz, so the
+     planar-move plugin gives the same interface in simulation. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <gazebo>
+    <plugin name="mecanum_drive" filename="libgazebo_ros_planar_move.so">
+      <ros>
+        <remapping>cmd_vel:=cmd_vel</remapping>
+        <remapping>odom:=odom</remapping>
+      </ros>
+      <update_rate>50</update_rate>
+      <publish_rate>30</publish_rate>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>$(arg prefix)base_footprint</robot_base_frame>
+      <covariance_x>0.0001</covariance_x>
+      <covariance_y>0.0001</covariance_y>
+      <covariance_yaw>0.01</covariance_yaw>
+    </plugin>
+
+    <!-- publish wheel joint states so RViz shows the wheels -->
+    <plugin name="joint_states" filename="libgazebo_ros_joint_state_publisher.so">
+      <update_rate>20</update_rate>
+      <joint_name>$(arg prefix)front_left_wheel_joint</joint_name>
+      <joint_name>$(arg prefix)front_right_wheel_joint</joint_name>
+      <joint_name>$(arg prefix)rear_left_wheel_joint</joint_name>
+      <joint_name>$(arg prefix)rear_right_wheel_joint</joint_name>
+    </plugin>
+  </gazebo>
+
+  <!-- friction: wheels roll, chassis does not drag -->
+  <gazebo reference="$(arg prefix)front_left_wheel_link"><mu1>0.8</mu1><mu2>0.8</mu2></gazebo>
+  <gazebo reference="$(arg prefix)front_right_wheel_link"><mu1>0.8</mu1><mu2>0.8</mu2></gazebo>
+  <gazebo reference="$(arg prefix)rear_left_wheel_link"><mu1>0.8</mu1><mu2>0.8</mu2></gazebo>
+  <gazebo reference="$(arg prefix)rear_right_wheel_link"><mu1>0.8</mu1><mu2>0.8</mu2></gazebo>
+</robot>

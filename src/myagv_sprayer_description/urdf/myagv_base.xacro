@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="mecanum_wheel" params="prefix name x y">
+    <link name="${prefix}${name}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+        <material name="agv_dark"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <xacro:cylinder_inertia m="${wheel_mass}" r="${wheel_radius}" h="${wheel_width}"/>
+      </inertial>
+    </link>
+    <!-- Mecanum wheels are driven by libgazebo_ros_planar_move in sim; the
+         real wheels are handled by the myAGV STM32 firmware, so the joints
+         are 'continuous' but not actuated in the URDF. -->
+    <joint name="${prefix}${name}_wheel_joint" type="continuous">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}${name}_wheel_link"/>
+      <origin xyz="${x} ${y} 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="myagv_base" params="prefix">
+
+    <link name="${prefix}base_footprint"/>
+
+    <joint name="${prefix}base_footprint_joint" type="fixed">
+      <parent link="${prefix}base_footprint"/>
+      <child  link="${prefix}base_link"/>
+      <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}base_link">
+      <visual>
+        <origin xyz="0 0 ${ground_clearance + base_height/2 - wheel_radius + 0.02}" rpy="0 0 0"/>
+        <geometry><box size="${base_length} ${base_width} ${base_height}"/></geometry>
+        <material name="agv_blue"/>
+      </visual>
+      <!-- front bumper strip -->
+      <visual>
+        <origin xyz="${base_length/2 + 0.005} 0 0.03" rpy="0 0 0"/>
+        <geometry><box size="0.01 ${base_width} 0.03"/></geometry>
+        <material name="agv_dark"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${ground_clearance + base_height/2 - wheel_radius + 0.02}" rpy="0 0 0"/>
+        <geometry><box size="${base_length} ${base_width} ${base_height}"/></geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        <mass value="${base_mass}"/>
+        <xacro:box_inertia m="${base_mass}" x="${base_length}" y="${base_width}" z="${base_height}"/>
+      </inertial>
+    </link>
+
+    <xacro:mecanum_wheel prefix="${prefix}" name="front_left"  x="${wheel_x}"  y="${wheel_y}"/>
+    <xacro:mecanum_wheel prefix="${prefix}" name="front_right" x="${wheel_x}"  y="${-wheel_y}"/>
+    <xacro:mecanum_wheel prefix="${prefix}" name="rear_left"   x="${-wheel_x}" y="${wheel_y}"/>
+    <xacro:mecanum_wheel prefix="${prefix}" name="rear_right"  x="${-wheel_x}" y="${-wheel_y}"/>
+
+    <!-- ===== 2D LiDAR (myAGV ships with a YDLidar on the top deck) ===== -->
+    <link name="${prefix}lidar_link">
+      <visual>
+        <geometry><cylinder radius="0.035" length="0.04"/></geometry>
+        <material name="agv_dark"/>
+      </visual>
+      <collision>
+        <geometry><cylinder radius="0.035" length="0.04"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.15"/>
+        <xacro:cylinder_inertia m="0.15" r="0.035" h="0.04"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}lidar_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}lidar_link"/>
+      <origin xyz="0.08 0 ${lidar_z}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- ===== Front RGB camera (built-in myAGV USB camera, wired to the RasPi) ===== -->
+    <link name="${prefix}camera_link">
+      <visual>
+        <geometry><box size="0.02 0.06 0.02"/></geometry>
+        <material name="agv_dark"/>
+      </visual>
+      <inertial>
+        <mass value="0.03"/>
+        <xacro:box_inertia m="0.03" x="0.02" y="0.06" z="0.02"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}camera_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}camera_link"/>
+      <!-- The stock myAGV camera sits low on the chassis; for this payload it is
+           re-mounted on top of the nozzle mast (0.46 m) and tilted down ~32 deg so
+           the canopy (0.30 m) fills the frame from the 0.45 m parking standoff. -->
+      <origin xyz="${camera_x} 0 ${mast_top_z}" rpy="0 0.55 0"/>
+    </joint>
+
+    <!-- REP-103 optical frame (z forward, x right, y down) -->
+    <link name="${prefix}camera_optical_frame"/>
+    <joint name="${prefix}camera_optical_joint" type="fixed">
+      <parent link="${prefix}camera_link"/>
+      <child  link="${prefix}camera_optical_frame"/>
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    </joint>
+
+  </xacro:macro>
+</robot>

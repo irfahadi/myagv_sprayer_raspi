@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!-- Gazebo Classic (gazebo_ros_pkgs, ROS 2 Humble) sensor plugins.
+     Adapted from beam_agrobot_v2 lidar.xacro / depth_camera.gazebo.xacro. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===== 2D LiDAR (YDLidar X2-class: 360 deg, 8 m) ===== -->
+  <gazebo reference="$(arg prefix)lidar_link">
+    <sensor name="lidar" type="ray">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>false</visualize>
+      <update_rate>10</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <resolution>1</resolution>
+            <min_angle>${-pi}</min_angle>
+            <max_angle>${pi}</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.12</min>
+          <max>8.0</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="lidar_controller" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>$(arg prefix)lidar_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- ===== Front RGB camera (640x480 @ 15 Hz, streamed to the Jetson over LAN) ===== -->
+  <gazebo reference="$(arg prefix)camera_link">
+    <sensor name="front_camera" type="camera">
+      <always_on>true</always_on>
+      <update_rate>15.0</update_rate>
+      <visualize>false</visualize>
+      <camera name="front">
+        <horizontal_fov>1.204</horizontal_fov>   <!-- ~69 deg -->
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>10.0</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <ros>
+          <namespace>camera</namespace>
+          <remapping>~/image_raw:=image_raw</remapping>
+          <remapping>~/camera_info:=camera_info</remapping>
+        </ros>
+        <camera_name>front</camera_name>
+        <frame_name>$(arg prefix)camera_optical_frame</frame_name>
+        <hack_baseline>0.0</hack_baseline>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- Tank level: the HC-SR04 is not simulated in Gazebo (a ray sensor would
+       hit the robot's own collision).  In simulation the Jetson repo's
+       tank_level_node runs with sim:=true and integrates pump-on time instead. -->
+
+</robot>

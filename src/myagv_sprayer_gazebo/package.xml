@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>myagv_sprayer_gazebo</name>
+  <version>0.2.0</version>
+  <description>Gazebo Classic world of the 8 x 6 m rice-seedling nursery room (4 trays with ArUco markers, 3 wall fans, climate sensor, south entrance), the scenario obstacle spawner and the asset generators.</description>
+  <maintainer email="info@maorthonet.com">Deva</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>gazebo_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>python3-numpy</depend>
+
+  <exec_depend>myagv_sprayer_description</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_ros_pkgs</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+    <gazebo_ros gazebo_model_path="${prefix}/share/myagv_sprayer_gazebo/models"/>
+  </export>
+</package>

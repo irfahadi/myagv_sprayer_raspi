@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- Coiled watering hose: low, wide, and invisible to a map made last week. -->
+<sdf version="1.7">
+  <model name="hose_coil">
+    <static>true</static>
+    <link name="link">
+      <visual name="body">
+        <pose>0 0 0.09 0 0 0</pose>
+        <geometry><cylinder><radius>0.24</radius><length>0.18</length></cylinder></geometry>
+        <material><ambient>0.1 0.25 0.15 1</ambient><diffuse>0.15 0.35 0.2 1</diffuse></material>
+      </visual>
+      <collision name="collision">
+        <pose>0 0 0.09 0 0 0</pose>
+        <geometry><cylinder><radius>0.24</radius><length>0.18</length></cylinder></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

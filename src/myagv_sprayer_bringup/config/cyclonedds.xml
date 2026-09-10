@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Cyclone DDS profile for the RasPi <-> Jetson Ethernet link.
+  Both boards must use the same ROS_DOMAIN_ID (default 42 in setup/env.sh).
+
+  export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+  export CYCLONEDDS_URI=file://$HOME/myagv_sprayer_raspi/src/myagv_sprayer_bringup/config/cyclonedds.xml
+
+  Pin the interface to the wired link (eth0) so discovery does not leak onto
+  Wi-Fi, and add the peer explicitly in case multicast is filtered.
+-->
+<CycloneDDS xmlns="https://cdds.io/config">
+  <Domain id="any">
+    <General>
+      <Interfaces>
+        <NetworkInterface name="eth0" priority="default" multicast="default"/>
+      </Interfaces>
+      <AllowMulticast>spdp</AllowMulticast>
+      <MaxMessageSize>65500B</MaxMessageSize>
+    </General>
+    <Discovery>
+      <ParticipantIndex>auto</ParticipantIndex>
+      <Peers>
+        <Peer address="192.168.10.20"/>   <!-- Jetson Nano -->
+        <Peer address="192.168.10.10"/>   <!-- Raspberry Pi (myAGV) -->
+      </Peers>
+    </Discovery>
+    <Internal>
+      <SocketReceiveBufferSize min="10MB"/>
+    </Internal>
+  </Domain>
+</CycloneDDS>

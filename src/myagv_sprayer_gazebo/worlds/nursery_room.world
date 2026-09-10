@@ -1,0 +1,263 @@
+<?xml version="1.0" ?>
+<!--
+  Ruang persemaian padi (rice-seedling nursery room) — 8 m (E-W) x 6 m (N-S).
+
+  Layout follows the floor plan "Denah ruang pembibitan":
+    - DINDING UTARA / BARAT / TIMUR / SELATAN  (0.15 m walls, 2.5 m high)
+    - PINTU MASUK UTAMA   : 1.2 m double door, centre of the south wall
+    - BAKI BIBIT TUNGGAL  : 4 trays, one per corner
+    - KIPAS VENTILASI     : 3 wall fans on the east wall
+    - SENSOR SUHU & KELEMBABAN : below the middle fan, east wall
+
+  Frame: x east, y north, origin at the room centre (= Nav2 map origin).
+-->
+<sdf version="1.7">
+  <world name="nursery_room">
+
+    <physics type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <scene>
+      <ambient>0.55 0.55 0.55 1</ambient>
+      <background>0.75 0.80 0.85 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <include><uri>model://sun</uri></include>
+
+    <!-- soft indoor fill lights -->
+    <light name="lamp_w" type="point">
+      <pose>-2 0 2.4 0 0 0</pose>
+      <diffuse>0.6 0.6 0.55 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>10</range><constant>0.4</constant><linear>0.05</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="lamp_e" type="point">
+      <pose>2 0 2.4 0 0 0</pose>
+      <diffuse>0.6 0.6 0.55 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>10</range><constant>0.4</constant><linear>0.05</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+
+    <!-- outside ground (concrete) slightly below the tiled floor -->
+    <model name="outside_ground">
+      <static>true</static>
+      <pose>0 0 -0.002 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>40 40</size></plane></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>40 40</size></plane></geometry>
+          <material><ambient>0.45 0.45 0.45 1</ambient><diffuse>0.5 0.5 0.5 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <uri>model://nursery_floor</uri>
+      <name>lantai_persemaian</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <!-- ===================== WALLS ===================== -->
+    <model name="dinding">
+      <static>true</static>
+
+      <!-- DINDING UTARA -->
+      <link name="dinding_utara">
+        <pose>0 3.075 1.25 0 0 0</pose>
+        <collision name="c"><geometry><box><size>8.3 0.15 2.5</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>8.3 0.15 2.5</size></box></geometry>
+          <material><ambient>0.85 0.86 0.88 1</ambient><diffuse>0.92 0.93 0.95 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- DINDING BARAT -->
+      <link name="dinding_barat">
+        <pose>-4.075 0 1.25 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.15 6.0 2.5</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.15 6.0 2.5</size></box></geometry>
+          <material><ambient>0.85 0.86 0.88 1</ambient><diffuse>0.92 0.93 0.95 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- DINDING TIMUR (fans + sensor mounted on this wall) -->
+      <link name="dinding_timur">
+        <pose>4.075 0 1.25 0 0 0</pose>
+        <collision name="c"><geometry><box><size>0.15 6.0 2.5</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>0.15 6.0 2.5</size></box></geometry>
+          <material><ambient>0.85 0.86 0.88 1</ambient><diffuse>0.92 0.93 0.95 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- DINDING SELATAN, split around the 1.2 m main entrance -->
+      <link name="dinding_selatan_barat">
+        <pose>-2.375 -3.075 1.25 0 0 0</pose>
+        <collision name="c"><geometry><box><size>3.55 0.15 2.5</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>3.55 0.15 2.5</size></box></geometry>
+          <material><ambient>0.85 0.86 0.88 1</ambient><diffuse>0.92 0.93 0.95 1</diffuse></material>
+        </visual>
+      </link>
+      <link name="dinding_selatan_timur">
+        <pose>2.375 -3.075 1.25 0 0 0</pose>
+        <collision name="c"><geometry><box><size>3.55 0.15 2.5</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>3.55 0.15 2.5</size></box></geometry>
+          <material><ambient>0.85 0.86 0.88 1</ambient><diffuse>0.92 0.93 0.95 1</diffuse></material>
+        </visual>
+      </link>
+      <!-- lintel above the door -->
+      <link name="ambang_pintu">
+        <pose>0 -3.075 2.35 0 0 0</pose>
+        <collision name="c"><geometry><box><size>1.2 0.15 0.3</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>1.2 0.15 0.3</size></box></geometry>
+          <material><ambient>0.85 0.86 0.88 1</ambient><diffuse>0.92 0.93 0.95 1</diffuse></material>
+        </visual>
+      </link>
+
+      <!-- skirting strip (the blue band in the plan) -->
+      <link name="lis_lantai">
+        <pose>0 0 0.05 0 0 0</pose>
+        <visual name="n"><pose>0 2.99 0 0 0 0</pose><geometry><box><size>8.0 0.02 0.10</size></box></geometry>
+          <material><ambient>0.55 0.70 0.85 1</ambient><diffuse>0.6 0.75 0.9 1</diffuse></material></visual>
+        <visual name="s1"><pose>-2.3 -2.99 0 0 0 0</pose><geometry><box><size>3.4 0.02 0.10</size></box></geometry>
+          <material><ambient>0.55 0.70 0.85 1</ambient><diffuse>0.6 0.75 0.9 1</diffuse></material></visual>
+        <visual name="s2"><pose>2.3 -2.99 0 0 0 0</pose><geometry><box><size>3.4 0.02 0.10</size></box></geometry>
+          <material><ambient>0.55 0.70 0.85 1</ambient><diffuse>0.6 0.75 0.9 1</diffuse></material></visual>
+        <visual name="w"><pose>-3.99 0 0 0 0 0</pose><geometry><box><size>0.02 6.0 0.10</size></box></geometry>
+          <material><ambient>0.55 0.70 0.85 1</ambient><diffuse>0.6 0.75 0.9 1</diffuse></material></visual>
+        <visual name="e"><pose>3.99 0 0 0 0 0</pose><geometry><box><size>0.02 6.0 0.10</size></box></geometry>
+          <material><ambient>0.55 0.70 0.85 1</ambient><diffuse>0.6 0.75 0.9 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- ===================== PINTU MASUK UTAMA (double door, open inwards) ===================== -->
+    <model name="pintu_masuk_utama">
+      <static>true</static>
+      <link name="daun_kiri">
+        <!-- hinge at x=-0.6, leaf swung 80 deg into the room -->
+        <pose>-0.6 -3.0 1.05 0 0 1.396</pose>
+        <visual name="v">
+          <pose>0.3 0 0 0 0 0</pose>
+          <geometry><box><size>0.6 0.04 2.1</size></box></geometry>
+          <material><ambient>0.55 0.40 0.25 1</ambient><diffuse>0.65 0.48 0.30 1</diffuse></material>
+        </visual>
+        <collision name="c">
+          <pose>0.3 0 0 0 0 0</pose>
+          <geometry><box><size>0.6 0.04 2.1</size></box></geometry>
+        </collision>
+      </link>
+      <link name="daun_kanan">
+        <pose>0.6 -3.0 1.05 0 0 1.745</pose>
+        <visual name="v">
+          <pose>0.3 0 0 0 0 0</pose>
+          <geometry><box><size>0.6 0.04 2.1</size></box></geometry>
+          <material><ambient>0.55 0.40 0.25 1</ambient><diffuse>0.65 0.48 0.30 1</diffuse></material>
+        </visual>
+        <collision name="c">
+          <pose>0.3 0 0 0 0 0</pose>
+          <geometry><box><size>0.6 0.04 2.1</size></box></geometry>
+        </collision>
+      </link>
+      <!-- threshold marker on the floor -->
+      <link name="ambang">
+        <pose>0 -3.0 0.003 0 0 0</pose>
+        <visual name="v">
+          <geometry><box><size>1.2 0.15 0.006</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.35 0.35 0.35 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===================== BAKI BIBIT TUNGGAL (4x) ===================== -->
+    <include>
+      <uri>model://seedling_tray</uri>
+      <name>baki_bibit_1_barat_laut</name>
+      <pose>-2.2 2.2 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://seedling_tray</uri>
+      <name>baki_bibit_2_timur_laut</name>
+      <pose>2.2 2.2 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://seedling_tray</uri>
+      <name>baki_bibit_3_barat_daya</name>
+      <pose>-2.6 -2.2 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://seedling_tray</uri>
+      <name>baki_bibit_4_timur_daya</name>
+      <pose>2.6 -2.2 0 0 0 0</pose>
+    </include>
+
+
+    <!-- ===================== MARKER ARUCO PER BAKI =====================
+         DICT_4X4_50, 100 mm, on the tray face that looks at the dock pose.
+         These are the goal sensor of the navigation policy AND the docking
+         reference: id N belongs to tray N (see tray_waypoints.yaml). -->
+    <include>
+      <uri>model://aruco_marker_1</uri>
+      <name>marker_baki_1_barat_laut</name>
+      <pose>-2.2 1.810 0 0 0 -1.5708</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_2</uri>
+      <name>marker_baki_2_timur_laut</name>
+      <pose>2.2 1.810 0 0 0 -1.5708</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_3</uri>
+      <name>marker_baki_3_barat_daya</name>
+      <pose>-2.6 -1.810 0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_4</uri>
+      <name>marker_baki_4_timur_daya</name>
+      <pose>2.6 -1.810 0 0 0 1.5708</pose>
+    </include>
+
+    <!-- ===================== KIPAS VENTILASI (east wall, blowing west) ===================== -->
+    <include>
+      <uri>model://wall_fan</uri>
+      <name>kipas_ventilasi_1</name>
+      <pose>3.99 1.1 1.7 0 0 3.14159</pose>
+    </include>
+    <include>
+      <uri>model://wall_fan</uri>
+      <name>kipas_ventilasi_2</name>
+      <pose>3.99 0.2 1.7 0 0 3.14159</pose>
+    </include>
+    <include>
+      <uri>model://wall_fan</uri>
+      <name>kipas_ventilasi_3</name>
+      <pose>3.99 -1.7 1.7 0 0 3.14159</pose>
+    </include>
+
+    <!-- ===================== SENSOR SUHU & KELEMBABAN ===================== -->
+    <include>
+      <uri>model://climate_sensor</uri>
+      <name>sensor_suhu_kelembaban</name>
+      <pose>3.99 -0.45 1.35 0 0 3.14159</pose>
+    </include>
+
+    <!-- GUI camera looking at the room from the south-west, above -->
+    <gui fullscreen="0">
+      <camera name="user_camera">
+        <pose>-5.5 -8.5 6.5 0 0.62 0.95</pose>
+      </camera>
+    </gui>
+
+  </world>
+</sdf>

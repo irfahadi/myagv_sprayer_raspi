@@ -1,0 +1,9 @@
+# /etc/netplan/60-myagv-sprayer.yaml on the Raspberry Pi
+# Static address on the wired link to the Jetson Nano (direct cable or small switch).
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: false
+      addresses: [192.168.10.10/24]
+      optional: true

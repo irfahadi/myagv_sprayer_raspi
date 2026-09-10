@@ -1,0 +1,18 @@
+material Aruco/Marker2
+{
+  technique
+  {
+    pass
+    {
+      lighting on
+      ambient 0.85 0.85 0.85 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.02 0.02 0.02 1.0 1.0
+      texture_unit
+      {
+        texture aruco_marker_2.png
+        filtering trilinear
+      }
+    }
+  }
+}

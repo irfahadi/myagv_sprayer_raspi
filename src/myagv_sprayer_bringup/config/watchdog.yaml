@@ -1,0 +1,18 @@
+cmd_vel_watchdog_node:
+  ros__parameters:
+    input_topic: /cmd_vel_nav      # from the Jetson nav controller / visual servo
+    manual_topic: /cmd_vel_manual  # teleop wins while it is publishing
+    output_topic: /cmd_vel         # the base driver subscribes here
+    # If the Jetson stops publishing for longer than this, the wheels are zeroed.
+    # Keep it comfortably above one control period (10 Hz -> 0.1 s) but short
+    # enough that a lost LAN link cannot carry the robot into a tray.
+    timeout_s: 0.5
+    rate_hz: 20.0
+    max_linear: 0.35
+    max_lateral: 0.30
+    max_angular: 1.5
+    # The policy switches between 45 degree directions instantly; the drivetrain
+    # should not be asked to. These limits smooth that step.
+    accel_linear: 0.8
+    accel_angular: 3.0
+    manual_priority_s: 1.0

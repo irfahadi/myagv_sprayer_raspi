@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Grown seedlings spilling over a route. Scenario D: present in the world,
+     absent from the saved map, and big enough to force a real detour. -->
+<sdf version="1.7">
+  <model name="plant_row">
+    <static>true</static>
+    <link name="link">
+      <visual name="foliage">
+        <pose>0 0 0.22 0 0 0</pose>
+        <geometry><box><size>2.60 0.45 0.44</size></box></geometry>
+        <material><ambient>0.15 0.45 0.15 1</ambient><diffuse>0.2 0.6 0.2 1</diffuse></material>
+      </visual>
+      <collision name="collision">
+        <pose>0 0 0.22 0 0 0</pose>
+        <geometry><box><size>2.60 0.45 0.44</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

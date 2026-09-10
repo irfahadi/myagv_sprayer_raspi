@@ -1,0 +1,13 @@
+build/
+install/
+log/
+models/*.pt
+models/*.engine
+models/*.onnx
+qtables/*.pt
+qtables/*.ts.pt
+dataset/images/
+dataset/labels/
+runs/
+__pycache__/
+*.pyc

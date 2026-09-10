@@ -1,0 +1,17 @@
+material SeedlingTray/Seedlings
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.8 0.8 0.8 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.05 0.05 0.05 1.0 2.0
+      texture_unit
+      {
+        texture seedlings.png
+        filtering trilinear
+      }
+    }
+  }
+}

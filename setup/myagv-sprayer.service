@@ -1,0 +1,15 @@
+[Unit]
+Description=myAGV precision sprayer - base bringup (driver, lidar, camera, Nav2)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=HOME=/home/ubuntu
+ExecStart=/bin/bash -lc 'source /home/ubuntu/myagv_sprayer_raspi/setup/env.sh && ros2 launch myagv_sprayer_bringup hardware.launch.py'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

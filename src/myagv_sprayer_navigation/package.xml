@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>myagv_sprayer_navigation</name>
+  <version>0.2.0</version>
+  <description>Map server, localization (identity / injected drift / slam_toolbox) and the saved nursery map. Path planning runs on the Jetson in sprayer_nav; Nav2 is intentionally not part of this stack.</description>
+  <maintainer email="info@maorthonet.com">Deva</maintainer>
+  <license>MIT</license>
+
+  <depend>rclpy</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>tf2_ros</depend>
+  <depend>python3-numpy</depend>
+  <depend>python3-yaml</depend>
+
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

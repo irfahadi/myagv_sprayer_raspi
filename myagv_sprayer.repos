@@ -1,0 +1,19 @@
+# External drivers pulled into src/ on the Raspberry Pi with:
+#   vcs import src < myagv_sprayer.repos
+repositories:
+  # Shared interfaces. Not strictly required to drive the base, but you want them
+  # for `ros2 topic echo /nav/state` and for anything that inspects the Jetson.
+  sprayer_msgs:
+    type: git
+    url: https://github.com/CHANGEME/myagv_sprayer_msgs.git
+    version: main
+  # Elephant Robotics myAGV ROS 2 driver (odometry, /cmd_vel, battery, IMU)
+  myagv_ros2:
+    type: git
+    url: https://github.com/elephantrobotics/myagv_ros2.git
+    version: main
+  # YDLidar ROS 2 driver (X2/X4 shipped with myAGV); needs YDLidar-SDK installed first
+  ydlidar_ros2_driver:
+    type: git
+    url: https://github.com/YDLIDAR/ydlidar_ros2_driver.git
+    version: humble

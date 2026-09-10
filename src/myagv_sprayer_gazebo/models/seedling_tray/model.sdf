@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!-- Mat-type rice seedling tray, one per room corner (see nursery_room.world).
+     Outer tub 1.20 x 0.70 x 0.25 m, dark plastic rim, soil + seedlings on top. -->
+<sdf version="1.7">
+  <model name="seedling_tray">
+    <static>true</static>
+    <link name="link">
+      <collision name="tub">
+        <pose>0 0 0.125 0 0 0</pose>
+        <geometry><box><size>1.20 0.70 0.25</size></box></geometry>
+      </collision>
+
+      <!-- tub body -->
+      <visual name="tub">
+        <pose>0 0 0.11 0 0 0</pose>
+        <geometry><box><size>1.20 0.70 0.22</size></box></geometry>
+        <material>
+          <ambient>0.10 0.10 0.10 1</ambient>
+          <diffuse>0.16 0.16 0.16 1</diffuse>
+          <specular>0.3 0.3 0.3 1</specular>
+        </material>
+      </visual>
+      <!-- rim lip (slightly wider) -->
+      <visual name="rim">
+        <pose>0 0 0.235 0 0 0</pose>
+        <geometry><box><size>1.24 0.74 0.03</size></box></geometry>
+        <material>
+          <ambient>0.12 0.12 0.12 1</ambient>
+          <diffuse>0.20 0.20 0.20 1</diffuse>
+          <specular>0.4 0.4 0.4 1</specular>
+        </material>
+      </visual>
+      <!-- seedling mat surface (textured), 1 cm below the rim -->
+      <visual name="seedlings">
+        <pose>0 0 0.245 0 0 0</pose>
+        <geometry><box><size>1.14 0.64 0.02</size></box></geometry>
+        <material>
+          <script>
+            <uri>model://seedling_tray/materials/scripts</uri>
+            <uri>model://seedling_tray/materials/textures</uri>
+            <name>SeedlingTray/Seedlings</name>
+          </script>
+        </material>
+      </visual>
+      <!-- blades volume: translucent green slab so the crop has height in the camera -->
+      <visual name="canopy">
+        <pose>0 0 0.29 0 0 0</pose>
+        <geometry><box><size>1.10 0.60 0.07</size></box></geometry>
+        <transparency>0.55</transparency>
+        <material>
+          <ambient>0.20 0.55 0.15 1</ambient>
+          <diffuse>0.30 0.75 0.20 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
