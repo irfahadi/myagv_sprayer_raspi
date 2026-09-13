@@ -1,6 +1,12 @@
 camera_stream_node:
   ros__parameters:
-    source: v4l2            # v4l2 (real robot) | topic (Gazebo)
+    # 'source' (v4l2 | topic) is deliberately NOT set here: a --params-file
+    # value wins over a launch-time `-p`/dict override for the same key
+    # regardless of argument order, so defining it in this shared file would
+    # make sim_full.launch.py's `{'source': 'topic'}` override silently
+    # no-op and fall back to the real /dev/video0 camera even in Gazebo.
+    # hardware.launch.py relies on camera_stream_node's own 'v4l2' default;
+    # sim_full.launch.py sets 'topic' via its launch-time override.
     device: /dev/video0
     input_topic: /camera/image_raw
     width: 640
