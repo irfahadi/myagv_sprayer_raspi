@@ -1,17 +1,22 @@
 """Full simulation stack on a desktop: Gazebo nursery room, map, watchdog, RViz.
 
     ros2 launch myagv_sprayer_bringup sim_full.launch.py
-    ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=C_unmapped
-    ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=B_loc_noise \
-        localization_mode:=drift
+    ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=2_unmapped_persistent
+    ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=2_unmapped_transient
+    ros2 launch myagv_sprayer_bringup sim_full.launch.py localization_mode:=drift
 
 Then, on the same machine or on the Jetson (same ROS_DOMAIN_ID):
 
     ros2 launch sprayer_bringup jetson.launch.py sim:=true algorithm:=vfh_ql
 
 Scenario handling: the world file always holds the room, the trays and their
-ArUco markers. The extra obstacles of Scenarios C-E are spawned at run time from
-a seed derived from (scenario, trial), so every algorithm meets the same world.
+ArUco markers. Scenario 2's extra obstacles are spawned at run time from a seed
+derived from (scenario, trial), so every algorithm meets the same world -- see
+``docs/experiment_protocol.md`` in the Jetson repo for the current scenario
+matrix. ``localization_mode:=drift`` is independent of scenario: it injects
+localisation noise on top of whichever scenario is running, for ad hoc
+robustness experiments -- no scenario in the current protocol turns it on by
+itself.
 """
 import os
 
@@ -36,17 +41,18 @@ def generate_launch_description():
     trial = LaunchConfiguration('trial')
 
     needs_obstacles = PythonExpression(
-        ["'", scenario, "' in ['C_unmapped', 'D_stale_map', 'E_multi_target']"])
+        ["'", scenario, "' in ['2_unmapped_persistent', '2_unmapped_transient']"])
 
     return LaunchDescription([
         DeclareLaunchArgument('rviz', default_value='true'),
         DeclareLaunchArgument('gui', default_value='true'),
-        DeclareLaunchArgument('scenario', default_value='A_ideal',
-                              description='A_ideal | B_loc_noise | C_unmapped | '
-                                          'D_stale_map | E_multi_target'),
+        DeclareLaunchArgument('scenario', default_value='1_ideal',
+                              description='1_ideal | 2_unmapped_persistent | '
+                                          '2_unmapped_transient'),
         DeclareLaunchArgument('trial', default_value='0'),
         DeclareLaunchArgument('localization_mode', default_value='identity',
-                              description="'drift' reproduces Scenario B"),
+                              description="'drift' injects localisation noise "
+                                          "independent of scenario"),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(

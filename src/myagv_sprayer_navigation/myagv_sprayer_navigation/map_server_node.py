@@ -7,8 +7,9 @@ guarantee with our own controller than inside Nav2's plugin machinery. What was
 still worth keeping from that stack is the map format, so this reads the same
 ``.pgm`` + ``.yaml`` pair ``nav2_map_server`` would, with no Nav2 dependency.
 
-Only the map-based algorithms (A*, D* Lite) subscribe. The RL policy never does;
-that independence from a global map is the property Scenario B tests.
+Only the map-based algorithms (A*, D* Lite) subscribe. VFH-QL never does; that
+independence from a global map is the property `docs/experiment_protocol.md`
+(Jetson repo) builds its whole comparison around.
 """
 from __future__ import annotations
 

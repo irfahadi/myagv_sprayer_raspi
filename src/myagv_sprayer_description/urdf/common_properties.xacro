@@ -21,7 +21,12 @@
   <xacro:property name="camera_z"     value="0.060"/>
 
   <!-- payload -->
-  <xacro:property name="deck_z"       value="0.105"/>   <!-- top surface of chassis -->
+  <!-- Raised on standoffs above the LiDAR (lidar_z=0.135, cylinder half-height 0.02,
+       so its scan plane top is 0.155): the payload plate, tank and mast base all sit
+       here, and without this margin they self-intersect the LiDAR's 360 deg scan ring,
+       permanently reading a ~0.13 m "obstacle" and latching the emergency stop. mast_top_z,
+       nozzle_z and camera_z are absolute heights and are unaffected by this offset. -->
+  <xacro:property name="deck_z"       value="0.175"/>
   <xacro:property name="tank_radius"  value="0.055"/>
   <xacro:property name="tank_height"  value="0.140"/>   <!-- ~1 L -->
   <xacro:property name="nozzle_x"     value="0.190"/>

@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
-"""Spawn and clear the Scenario A-E obstacles inside a running Gazebo.
+"""Spawn and clear Scenario 2's unmapped obstacles inside a running Gazebo.
 
-Keeping the scenarios in one world file plus a spawner (rather than five world
-files) matters for the protocol: every algorithm must face a *byte-identical*
-world in a given trial, and the easiest way to guarantee that is to place the
-obstacles from a seed rather than by hand.
+Keeping the scenarios in one world file plus a spawner (rather than one world
+file per scenario) matters for the protocol: every algorithm must face a
+*byte-identical* world in a given trial, and the easiest way to guarantee that
+is to place the obstacles from a seed rather than by hand.
 
-    ros2 run myagv_sprayer_gazebo scenario_spawner_node --ros-args -p scenario:=C_unmapped
+    ros2 run myagv_sprayer_gazebo scenario_spawner_node --ros-args -p scenario:=2_unmapped_persistent
     ros2 service call /scenario/apply sprayer... (no custom srv needed)
 
 Services
     /scenario/apply   std_srvs/Trigger   place the obstacles for ``scenario``+``trial``
     /scenario/clear   std_srvs/Trigger   delete everything this node spawned
 
+For ``2_unmapped_transient`` the obstacles are additionally removed on their
+own after ``transient_after_s`` -- the Gazebo-side counterpart of
+``sprayer_nav/sim2d/room_env.py``'s ``_maybe_clear_transient_obstacles``, at the
+same 120-step / 0.2 s-per-step point in wall-clock time (24 s).
+
 The obstacle positions mirror ``sprayer_nav/sim2d/room_env.py`` so a result found
 in the fast 2D benchmark can be reproduced here without re-deriving the layout.
+See ``docs/experiment_protocol.md`` in the Jetson repo for the current scenario
+matrix (1_ideal, 2_unmapped_persistent, 2_unmapped_transient).
 """
 from __future__ import annotations
 
@@ -34,15 +41,11 @@ UNMAPPED_SPOTS = [
     (-1.6, -1.0, 'hose_coil'), (1.6, -1.0, 'bucket'), (0.0, -0.6, 'hose_coil'),
     (-2.2, 0.4, 'bucket'), (2.2, 0.4, 'hose_coil'),
 ]
-# Scenario D: grown seedlings across the northern route, absent from the map.
-STALE_BLOCK = (0.0, 1.15)
 
 SCENARIO_OBSTACLES = {
-    'A_ideal': 0,
-    'B_loc_noise': 0,
-    'C_unmapped': 2,
-    'D_stale_map': 1,
-    'E_multi_target': 1,
+    '1_ideal': 0,
+    '2_unmapped_persistent': 2,
+    '2_unmapped_transient': 2,
 }
 
 
@@ -58,13 +61,15 @@ class ScenarioSpawnerNode(Node):
 
     def __init__(self):
         super().__init__('scenario_spawner_node')
-        self.declare_parameter('scenario', 'A_ideal')
+        self.declare_parameter('scenario', '1_ideal')
         self.declare_parameter('trial', 0)
         self.declare_parameter('apply_on_start', True)
+        self.declare_parameter('transient_after_s', 24.0)
 
         self.models_dir = os.path.join(
             get_package_share_directory('myagv_sprayer_gazebo'), 'models')
         self.spawned = []
+        self._transient_timer = None
 
         self.spawn_cli = self.create_client(SpawnEntity, '/spawn_entity')
         self.delete_cli = self.create_client(DeleteEntity, '/delete_entity')
@@ -129,6 +134,9 @@ class ScenarioSpawnerNode(Node):
         scenario = str(self.get_parameter('scenario').value)
         trial = int(self.get_parameter('trial').value)
         self._clear()
+        if self._transient_timer is not None:
+            self._transient_timer.cancel()
+            self._transient_timer = None
         rng = np.random.default_rng(episode_seed(scenario, trial))
 
         n = SCENARIO_OBSTACLES.get(scenario, 0)
@@ -137,13 +145,23 @@ class ScenarioSpawnerNode(Node):
         for i, (x, y, model) in enumerate(spots[:n]):
             self._spawn(model, f'scenario_obstacle_{i}', x, y)
 
-        if scenario == 'D_stale_map':
-            self._spawn('plant_row', 'scenario_plant_row', *STALE_BLOCK)
+        if scenario == '2_unmapped_transient' and self.spawned:
+            after_s = float(self.get_parameter('transient_after_s').value)
+            self._transient_timer = self.create_timer(after_s, self._clear_transient_once)
 
         self.get_logger().info(
             f'scenario {scenario} trial {trial}: {len(self.spawned)} obstacle(s). '
             'Remember: the saved map does NOT contain them -- that is the point.')
         return len(self.spawned)
+
+    def _clear_transient_once(self):
+        """Scenario 2's transient variant: the hose gets picked up mid-episode --
+        mirrors ``RoomEnv._maybe_clear_transient_obstacles`` in the 2D benchmark."""
+        if self._transient_timer is not None:
+            self._transient_timer.cancel()
+            self._transient_timer = None
+        n = self._clear()
+        self.get_logger().info(f'transient obstacle window elapsed: cleared {n}')
 
     def _apply_once(self):
         if self._applied:

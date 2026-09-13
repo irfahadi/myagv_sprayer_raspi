@@ -1,8 +1,9 @@
 """Real-robot bringup on the myAGV Raspberry Pi.
 
 This side of the system is now deliberately thin: sensors in, wheels out. Every
-navigation decision -- VFH-QL, DQN, A* or D* Lite -- is made on the Jetson Nano
-(``ros2 launch sprayer_bringup jetson.launch.py``), so what runs here is
+navigation decision -- VFH-QL, CQL, SARSA, A* or D* Lite -- is made on the
+Jetson Nano (``ros2 launch sprayer_bringup jetson.launch.py``), so what runs
+here is
 
   * the myAGV base driver          -> /odom, TF odom->base_footprint
   * the YDLidar driver             -> /scan

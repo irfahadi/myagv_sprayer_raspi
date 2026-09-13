@@ -65,8 +65,8 @@
       <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
         <ros>
           <namespace>camera</namespace>
-          <remapping>~/image_raw:=image_raw</remapping>
-          <remapping>~/camera_info:=camera_info</remapping>
+          <remapping>front/image_raw:=image_raw</remapping>
+          <remapping>front/camera_info:=camera_info</remapping>
         </ros>
         <camera_name>front</camera_name>
         <frame_name>$(arg prefix)camera_optical_frame</frame_name>

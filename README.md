@@ -13,9 +13,9 @@ Basis kode diadaptasi dari
 ## Yang berubah dari versi sebelumnya
 
 **Nav2 dihapus seluruhnya.** Perencanaan jalur pindah ke Jetson, ke satu node yang
-menampung VFH-QL, DQN, A* dan D* Lite di belakang satu ruang aksi yang sama —
-syarat agar keempatnya bisa dibandingkan secara setara. Yang tersisa di sini
-adalah peta, lokalisasi, sensor, dan roda.
+menampung VFH-QL, CQL, SARSA, A* dan D* Lite di belakang satu ruang aksi yang
+sama — syarat agar kelimanya bisa dibandingkan secara setara. Yang tersisa di
+sini adalah peta, lokalisasi, sensor, dan roda.
 
 Karena jalur perintah kini melintasi LAN, ditambahkan
 **`cmd_vel_watchdog_node`**: satu-satunya publisher `/cmd_vel`. Ia merelai
@@ -29,7 +29,7 @@ berhenti, bukan meluncur dengan perintah terakhir.
    │  Raspberry Pi (myAGV)  .10     │        │  Jetson Nano            .20      │
    │                                │        │                                  │
    │  driver myAGV  → /odom, TF     │        │  nav_controller_node             │
-   │  ydlidar       → /scan  ───────┼───────▶│    vfh_ql · dqn · astar · dstar  │
+   │  ydlidar       → /scan  ───────┼───────▶│  vfh_ql·cql·sarsa·astar·dstar    │
    │  camera_stream → JPEG   ───────┼───────▶│  aruco_detector + visual_servo   │
    │  map_server    → /map   ───────┼───────▶│  tray_detector (kelembapan)      │
    │  localization  → TF map→odom   │        │  relay · tank · spray_manager    │
@@ -43,8 +43,8 @@ berhenti, bukan meluncur dengan perintah terakhir.
 | paket | isi |
 |---|---|
 | `myagv_sprayer_description` | URDF/xacro myAGV (4 roda mecanum, LiDAR, kamera di puncak tiang nozzle) + payload sprayer (LiPo, buck, relai, Jetson, tangki 1 L + HC-SR04, pompa, nozzle TeeJet) |
-| `myagv_sprayer_gazebo` | World **`nursery_room.world`** ruang persemaian 8 × 6 m sesuai denah, **plus marker ArUco di muka tiap baki**, dan `scenario_spawner_node` untuk menaruh rintangan skenario C–E saat runtime |
-| `myagv_sprayer_navigation` | `map_server_node` (pembaca .pgm/.yaml sendiri, tanpa Nav2), `localization_node` (identity / **drift** untuk Skenario B / slam_toolbox), peta tersimpan, dan `tray_waypoints.yaml` |
+| `myagv_sprayer_gazebo` | World **`nursery_room.world`** ruang persemaian 8 × 6 m sesuai denah, **plus marker ArUco di muka tiap baki**, dan `scenario_spawner_node` untuk menaruh rintangan Skenario 2 (persisten/transient) saat runtime |
+| `myagv_sprayer_navigation` | `map_server_node` (pembaca .pgm/.yaml sendiri, tanpa Nav2), `localization_node` (identity / **drift** untuk eksperimen lokalisasi ad hoc / slam_toolbox), peta tersimpan, dan `tray_waypoints.yaml` |
 | `myagv_sprayer_bringup` | `hardware.launch.py`, `sim_full.launch.py`, `camera_stream_node`, `cmd_vel_watchdog_node`, `robot_health_node`, `tray_marker_node` |
 
 Koordinat: frame `map` = pusat ruangan, x ke timur, y ke utara.
@@ -90,16 +90,23 @@ ros2 launch sprayer_bringup jetson.launch.py sim:=true algorithm:=vfh_ql auto_st
 
 ### Menjalankan skenario eksperimen
 
+Matriks skenario saat ini ada di `docs/experiment_protocol.md` (repo Jetson):
+skenario 1 (ideal) dan skenario 2 (rintangan tak terpetakan, varian persisten
+dan transient). Skenario lokalisasi-noise/stale-map/multi-target versi
+sebelumnya sudah tidak ada di protokol saat ini.
+
 ```bash
-# C: rintangan tak terpetakan (selang/ember) di jalur
-ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=C_unmapped trial:=0
+# 1: kondisi ideal, tanpa rintangan tak terpetakan
+ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=1_ideal trial:=0
 
-# B: lokalisasi melenceng — sensor tetap normal, hanya keyakinan posisi yang salah
-ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=B_loc_noise \
-    localization_mode:=drift
+# 2a: rintangan tak terpetakan (selang/ember) di jalur, bertahan sepanjang episode
+ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=2_unmapped_persistent trial:=0
 
-# D: rute tertutup tanaman yang sudah tumbuh + rintangan hantu di peta lama
-ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=D_stale_map
+# 2b: rintangan yang sama, tapi hilang sendiri ~24 detik ke dalam episode
+ros2 launch myagv_sprayer_bringup sim_full.launch.py scenario:=2_unmapped_transient trial:=0
+
+# lokalisasi melenceng — independen dari skenario, untuk eksperimen ad hoc
+ros2 launch myagv_sprayer_bringup sim_full.launch.py localization_mode:=drift
 ```
 
 Rintangan ditaruh dari benih `(scenario, trial)` memakai hash yang sama dengan
