@@ -13,6 +13,7 @@
 -->
 <sdf version="1.7">
   <world name="nursery_room">
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so"></plugin>
 
     <physics type="ode">
       <max_step_size>0.001</max_step_size>
