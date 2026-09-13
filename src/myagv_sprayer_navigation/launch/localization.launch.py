@@ -34,7 +34,14 @@ def generate_launch_description():
         DeclareLaunchArgument('drift_sigma_xy', default_value='0.010'),
         DeclareLaunchArgument('drift_sigma_theta', default_value='0.010'),
         DeclareLaunchArgument('initial_offset_m', default_value='0.0'),
-        DeclareLaunchArgument('seed', default_value='0'),
+        # Named 'localization_seed', not 'seed': gazebo_ros's gzserver.launch.py
+        # already declares a 'seed' argument (default_value='') for the physics
+        # RNG. Nested IncludeLaunchDescriptions share one flat LaunchConfiguration
+        # namespace, and DeclareLaunchArgument never overrides an
+        # already-declared value -- so a same-named 'seed' here would silently
+        # inherit gzserver's empty default instead of applying '0', and
+        # localization_node would crash on int('').
+        DeclareLaunchArgument('localization_seed', default_value='0'),
 
         Node(package='myagv_sprayer_navigation', executable='map_server_node',
              name='map_server_node', output='screen',
@@ -43,12 +50,13 @@ def generate_launch_description():
         Node(package='myagv_sprayer_navigation', executable='localization_node',
              name='localization_node', output='screen',
              condition=UnlessCondition(use_slam),
+             respawn=True, respawn_delay=1.0,
              parameters=[{
                  'mode': mode, 'use_sim_time': use_sim_time,
                  'drift_sigma_xy': LaunchConfiguration('drift_sigma_xy'),
                  'drift_sigma_theta': LaunchConfiguration('drift_sigma_theta'),
                  'initial_offset_m': LaunchConfiguration('initial_offset_m'),
-                 'seed': LaunchConfiguration('seed'),
+                 'localization_seed': LaunchConfiguration('localization_seed'),
              }]),
 
         Node(package='slam_toolbox', executable='localization_slam_toolbox_node',

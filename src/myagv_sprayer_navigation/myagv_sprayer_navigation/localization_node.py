@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish ``map -> odom``, optionally with injected drift (Scenario B).
+"""Publish ``map -> odom``, optionally with injected drift.
 
 Two modes:
 
@@ -8,14 +8,16 @@ Two modes:
     drive plugin publishes world-referenced odometry. This is the clean baseline.
 
 ``drift``
-    The same transform, corrupted by a random walk plus a fixed initial offset.
-    This is how Scenario B ("localization noise") is produced: nothing about the
-    sensors changes, only the robot's belief about where it is.
+    The same transform, corrupted by a random walk plus a fixed initial offset:
+    nothing about the sensors changes, only the robot's belief about where it
+    is. No scenario in the current `docs/experiment_protocol.md` (Jetson repo)
+    turns this on by itself -- it is ad hoc infrastructure for a robustness
+    experiment, not tied to a specific numbered scenario.
 
-That asymmetry is the experiment. A* and D* Lite consume this transform to decide
-where they are on the map, so their paths degrade with it. The RL policy never
-looks it up: its goal signal is the ArUco bearing, and its obstacle signal is the
-raw scan, both in the robot frame.
+That asymmetry is the interesting one regardless: A* and D* Lite consume this
+transform to decide where they are on the map, so their paths degrade with it.
+The RL policy never looks it up: its goal signal is the ArUco bearing, and its
+obstacle signal is the raw scan, both in the robot frame.
 
 On real hardware, run ``slam_toolbox`` in localization mode instead and leave
 this node out (``mode:=off``) -- except when you deliberately want to inject
@@ -45,10 +47,10 @@ class LocalizationNode(Node):
         self.declare_parameter('drift_sigma_theta', 0.010)
         self.declare_parameter('initial_offset_m', 0.0)
         self.declare_parameter('initial_offset_theta', 0.0)
-        self.declare_parameter('seed', 0)
+        self.declare_parameter('localization_seed', 0)
 
         self.mode = str(self.get_parameter('mode').value)
-        self.rng = np.random.default_rng(int(self.get_parameter('seed').value))
+        self.rng = np.random.default_rng(int(self.get_parameter('localization_seed').value))
         self.offset = np.zeros(3)
         self._seed_offset()
 
