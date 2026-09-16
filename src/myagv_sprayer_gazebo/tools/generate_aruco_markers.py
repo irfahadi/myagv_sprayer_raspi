@@ -32,6 +32,7 @@ MARKER_MM = 100.0          # black square, edge to edge
 QUIET_MM = 20.0            # white border; ArUco needs it to segment reliably
 BOARD_MM = MARKER_MM + 2 * QUIET_MM
 MARKER_Z = 0.30            # height of the marker centre above the floor
+POST_GAP = 0.03            # clearance kept between the post's top and the board's bottom edge
 DPI = 600
 
 # tray centre -> marker face, matching worlds/nursery_room.world
@@ -98,16 +99,27 @@ def write_model(marker_id: int, out_dir: str):
 ''')
 
     # +x is the outward normal: the face the robot must approach from.
+    #
+    # The post must never overlap the board's z-span (MARKER_Z +/- board/2),
+    # or its own radius pokes through the printed face from the front --
+    # this was a real bug: with the post running the full height up to
+    # MARKER_Z (the board's *centre*), its 8mm radius physically stuck out
+    # past the board's front face (only 4mm ahead of the post's axis) for
+    # the bottom half of the board, occluding enough bits that cv2.aruco
+    # failed to decode the marker in ~99% of captured viewpoints. Stopping
+    # the post POST_GAP below the board's bottom edge removes any z-overlap,
+    # so no viewing angle can put the post in front of the printed face.
+    post_len = MARKER_Z - board / 2.0 - POST_GAP
     with open(os.path.join(out_dir, 'model.sdf'), 'w') as f:
         f.write(f'''<?xml version="1.0"?>
 <sdf version="1.7">
   <model name="{name}">
     <static>true</static>
     <link name="link">
-      <!-- post -->
+      <!-- post: stops POST_GAP below the board's bottom edge, see comment above -->
       <visual name="post">
-        <pose>0 0 {MARKER_Z / 2:.3f} 0 0 0</pose>
-        <geometry><cylinder><radius>0.008</radius><length>{MARKER_Z:.3f}</length></cylinder></geometry>
+        <pose>0 0 {post_len / 2:.3f} 0 0 0</pose>
+        <geometry><cylinder><radius>0.008</radius><length>{post_len:.3f}</length></cylinder></geometry>
         <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.4 0.4 0.4 1</diffuse></material>
       </visual>
       <!-- printed sheet; the texture faces +x -->

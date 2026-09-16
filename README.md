@@ -31,7 +31,7 @@ berhenti, bukan meluncur dengan perintah terakhir.
    │  driver myAGV  → /odom, TF     │        │  nav_controller_node             │
    │  ydlidar       → /scan  ───────┼───────▶│  vfh_ql·cql·sarsa·astar·dstar    │
    │  camera_stream → JPEG   ───────┼───────▶│  aruco_detector + visual_servo   │
-   │  map_server    → /map   ───────┼───────▶│  tray_detector (kelembapan)      │
+   │  map_server    → /map   ───────┼───────▶│  tray_detector (identitas)       │
    │  localization  → TF map→odom   │        │  relay · tank · spray_manager    │
    │  cmd_vel_watchdog ◀── /cmd_vel_nav ─────┤  mission_node                    │
    │      └→ /cmd_vel → roda        │        │                                  │
