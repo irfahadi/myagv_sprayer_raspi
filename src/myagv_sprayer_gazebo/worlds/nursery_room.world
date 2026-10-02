@@ -205,28 +205,76 @@
 
 
     <!-- ===================== MARKER ARUCO PER BAKI =====================
-         DICT_4X4_50, 100 mm, on the tray face that looks at the dock pose.
-         These are the goal sensor of the navigation policy AND the docking
-         reference: id N belongs to tray N (see tray_waypoints.yaml). -->
+         DICT_4X4_50, 100 mm. THREE stands per tray (the dock face plus both side
+         faces), and all three carry that tray's OWN id, so a tray reads the same
+         from whichever side you see it. cv2.aruco only decodes within about 20 to
+         25 degrees of a marker's normal, so one stand per tray left each tray
+         unreadable from most approach directions.
+
+         The face opposite the dock side is deliberately bare: every tray sits in
+         a room corner, so that face looks at a wall 0.41 m away and the robot
+         needs 0.657 m to stand inside that marker's cone.
+
+         Regenerate with myagv_sprayer_gazebo/tools/generate_aruco_markers.py. -->
     <include>
       <uri>model://aruco_marker_1</uri>
-      <name>marker_baki_1_barat_laut</name>
-      <pose>-2.2 1.810 0 0 0 -1.5708</pose>
+      <name>marker_baki_1_barat_laut_dock</name>
+      <pose>-2.200 1.810 0 0 0 -1.5708</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_1</uri>
+      <name>marker_baki_1_barat_laut_left</name>
+      <pose>-2.840 2.200 0 0 0 3.1416</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_1</uri>
+      <name>marker_baki_1_barat_laut_right</name>
+      <pose>-1.560 2.200 0 0 0 0.0</pose>
     </include>
     <include>
       <uri>model://aruco_marker_2</uri>
-      <name>marker_baki_2_timur_laut</name>
-      <pose>2.2 1.810 0 0 0 -1.5708</pose>
+      <name>marker_baki_2_timur_laut_dock</name>
+      <pose>2.200 1.810 0 0 0 -1.5708</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_2</uri>
+      <name>marker_baki_2_timur_laut_left</name>
+      <pose>1.560 2.200 0 0 0 3.1416</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_2</uri>
+      <name>marker_baki_2_timur_laut_right</name>
+      <pose>2.840 2.200 0 0 0 0.0</pose>
     </include>
     <include>
       <uri>model://aruco_marker_3</uri>
-      <name>marker_baki_3_barat_daya</name>
-      <pose>-2.6 -1.810 0 0 0 1.5708</pose>
+      <name>marker_baki_3_barat_daya_dock</name>
+      <pose>-2.600 -1.810 0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_3</uri>
+      <name>marker_baki_3_barat_daya_left</name>
+      <pose>-3.240 -2.200 0 0 0 3.1416</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_3</uri>
+      <name>marker_baki_3_barat_daya_right</name>
+      <pose>-1.960 -2.200 0 0 0 0.0</pose>
     </include>
     <include>
       <uri>model://aruco_marker_4</uri>
-      <name>marker_baki_4_timur_daya</name>
-      <pose>2.6 -1.810 0 0 0 1.5708</pose>
+      <name>marker_baki_4_timur_daya_dock</name>
+      <pose>2.600 -1.810 0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_4</uri>
+      <name>marker_baki_4_timur_daya_left</name>
+      <pose>1.960 -2.200 0 0 0 3.1416</pose>
+    </include>
+    <include>
+      <uri>model://aruco_marker_4</uri>
+      <name>marker_baki_4_timur_daya_right</name>
+      <pose>3.240 -2.200 0 0 0 0.0</pose>
     </include>
 
     <!-- ===================== KIPAS VENTILASI (east wall, blowing west) ===================== -->

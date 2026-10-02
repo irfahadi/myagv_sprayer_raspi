@@ -81,6 +81,9 @@
         <geometry><box size="0.045 0.020 0.015"/></geometry>
         <material name="agv_dark"/>
       </visual>
+      <collision>
+        <geometry><box size="0.045 0.020 0.015"/></geometry>
+      </collision>
       <inertial>
         <mass value="0.01"/>
         <xacro:box_inertia m="0.01" x="0.045" y="0.020" z="0.015"/>
@@ -103,6 +106,13 @@
         <geometry><cylinder radius="0.006" length="${mast_top_z - deck_z}"/></geometry>
         <material name="agv_grey"/>
       </visual>
+      <!-- The mast spans z = 0.175..0.46, so it overlaps a seedling tray's 0.25 m
+           collision box. It sits at x = 0.140 though, behind the front bumper's
+           0.165, so the bumper always makes contact first. -->
+      <collision>
+        <origin xyz="0 0 ${(mast_top_z - deck_z)/2}" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.006" length="${mast_top_z - deck_z}"/></geometry>
+      </collision>
       <inertial>
         <mass value="0.05"/>
         <xacro:cylinder_inertia m="0.05" r="0.006" h="${mast_top_z - deck_z}"/>
@@ -121,6 +131,15 @@
         <geometry><cylinder radius="0.008" length="0.025"/></geometry>
         <material name="nozzle_teal"/>
       </visual>
+      <!-- Reaches x = 0.2145, i.e. 5 cm further forward than the bumper, at
+           z = 0.38. Above every prop in the room (tallest is the bucket at 0.28)
+           but well under the 2.5 m walls, so this is the link that decides a
+           nose-first wall contact. Gazebo resolves that in 3D for free; sim2d
+           needs the explicit height tiers in layout.ROBOT_FOOTPRINT_HIGH. -->
+      <collision>
+        <origin xyz="0.012 0 0" rpy="0 ${pi/2} 0"/>
+        <geometry><cylinder radius="0.008" length="0.025"/></geometry>
+      </collision>
       <inertial>
         <mass value="0.02"/>
         <xacro:cylinder_inertia m="0.02" r="0.008" h="0.025"/>

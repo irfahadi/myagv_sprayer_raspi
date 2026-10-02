@@ -42,7 +42,26 @@ TRAYS = [
     dict(n=3, name='baki_3_barat_daya', center=(-2.6, -2.2), dock_y=-1.40),
     dict(n=4, name='baki_4_timur_daya', center=(2.6, -2.2), dock_y=-1.40),
 ]
+TRAY_SX = 1.24             # rim lip, outer; see models/seedling_tray/model.sdf
 TRAY_SY = 0.74
+FACE_GAP = 0.02            # the stand sits this far clear of the rim
+
+# THREE stands per tray, all carrying the tray's OWN id: the dock face plus both
+# side faces. cv2.aruco only decodes inside roughly a +-20..25 deg cone off a
+# marker's normal (myagv_sprayer_jetson/tools/measure_aruco_detection.py: 100% at
+# +-20 deg, 0% at +-22 deg at 0.4 m), so a single face left each tray unreadable
+# from the great majority of approach directions -- the "cannot see it from the
+# side" problem.
+#
+# **The same id on all three faces, not one id per face.** A tray has a single
+# identity: that is what `tray_waypoints.yaml`'s `marker_ids` means and what the
+# YOLO detector's one-class-per-tray encodes, and physically you print the same
+# marker three times.
+#
+# There is deliberately NO marker on the face opposite the dock side. Every tray
+# sits in a room corner, so that face looks at a wall 0.41 m away, while standing
+# inside its cone needs `safety_distance` 0.45 m plus the robot's 0.207 m
+# circumradius = 0.657 m. A marker there would be geometrically unreadable.
 
 
 def marker_image(marker_id: int, px: int = 512) -> np.ndarray:
@@ -159,13 +178,23 @@ def write_printable(marker_id: int):
     return path
 
 
-def world_pose(tray):
-    """Marker pose in the world: on the tray face that looks at the dock."""
+def world_poses(tray):
+    """The three stand poses for one tray: dock face, then both side faces.
+
+    Returns ``[(face_name, x, y, yaw), ...]``. The model's +x is its printed
+    normal, so ``yaw`` is simply the direction that face looks in. All three
+    carry tray ``n``'s own marker id -- see the note above.
+    """
     cx, cy = tray['center']
-    ny = 1.0 if tray['dock_y'] > cy else -1.0
-    y = cy + ny * (TRAY_SY / 2.0 + 0.02)
-    yaw = 1.5708 if ny > 0 else -1.5708        # +x of the model points at the dock
-    return cx, y, yaw
+    ny = 1.0 if tray['dock_y'] > cy else -1.0   # +1 = dock side lies north
+    dy = TRAY_SY / 2.0 + FACE_GAP
+    dx = TRAY_SX / 2.0 + FACE_GAP
+    half_pi = 1.5708
+    return [
+        ('dock',  cx,      cy + ny * dy, half_pi if ny > 0 else -half_pi),
+        ('left',  cx - dx, cy,           3.1416),
+        ('right', cx + dx, cy,           0.0),
+    ]
 
 
 def main():
@@ -176,13 +205,15 @@ def main():
         out_dir = os.path.join(PKG, 'models', f'aruco_marker_{t["n"]}')
         write_model(t['n'], out_dir)
         p = write_printable(t['n'])
-        x, y, yaw = world_pose(t)
-        lines.append(f'    <include>\n'
-                     f'      <uri>model://aruco_marker_{t["n"]}</uri>\n'
-                     f'      <name>marker_{t["name"]}</name>\n'
-                     f'      <pose>{x} {y:.3f} 0 0 0 {yaw}</pose>\n'
-                     f'    </include>')
-        print(f'  tray {t["n"]} -> model + {os.path.relpath(p, REPO)}')
+        print(f'  tray {t["n"]} -> model + {os.path.relpath(p, REPO)} '
+              f'(print 3x, one per face)')
+        for face, x, y, yaw in world_poses(t):
+            lines.append(f'    <include>\n'
+                         f'      <uri>model://aruco_marker_{t["n"]}</uri>\n'
+                         f'      <name>marker_{t["name"]}_{face}</name>\n'
+                         f'      <pose>{x:.3f} {y:.3f} 0 0 0 {yaw}</pose>\n'
+                         f'    </include>')
+            print(f'      {face:5s} ({x:+.3f}, {y:+.3f}) yaw {yaw:+.4f}')
     print('\nSDF snippet for worlds/nursery_room.world:\n')
     print('\n'.join(lines))
 
