@@ -1,21 +1,50 @@
-# Parking poses in the `map` frame (origin = room centre, x east, y north).
-# The robot parks ~0.45 m from the tray edge, nozzle facing the tray.
-# Consumed by sprayer_nav (NavigateToTray goals), sprayer_docking (marker ids)
-# and sprayer_mission. The RasPi keeps an identical copy for its RViz markers.
+# Parking poses in the `map` frame (origin = room centre, x east, y north),
+# nozzle facing the tray.
 #
-# Tray centres  : NW (-2.2, 2.2)  NE (2.2, 2.2)  SW (-2.6, -2.2)  SE (2.6, -2.2)
-# Tray footprint: 1.20 x 0.70 m, rim height 0.25 m
+# THIS IS A COPY. The reference is myagv_sprayer_jetson's
+# src/sprayer_nav/config/tray_waypoints.yaml -- edit there first, then mirror the
+# values here. This copy exists only so the RasPi can draw its RViz markers
+# without depending on the Jetson workspace. tools/check_layout.py (in
+# myagv_sprayer_gazebo) fails if the two drift apart, along with the world, the
+# URDF and the Jetson's sim2d/layout.py.
+#
+# Consumed by sprayer_nav (NavigateToTray goals) and sprayer_mission. It used to
+# feed sprayer_docking its marker ids too -- that layer is gone, and the only
+# thing left in sprayer_docking (aruco_detector_node) does not read this file.
+#
+# Tray centres: NW (-2.2, 2.2)  NE (2.2, 2.2)  SW (-2.6, -2.2)  SE (2.6, -2.2)
+#
+# A tray is TWO boxes, and mixing them up is worth one explicit warning because
+# both standoff numbers that fall out of them are "right" (seedling_tray/model.sdf):
+#   body     1.20 x 0.70 m, 0.25 m high   -> parking point sits 0.45 m off it
+#   rim lip  1.24 x 0.74 m, overhangs it  -> parking point sits 0.43 m off it
+# `tray_size` below is the RIM, because that is the edge the robot actually stops
+# against and where the markers are mounted. 0.43 m is therefore the standoff to
+# quote; `safety_distance: 0.45` in nav_controller.yaml being equal to the body
+# figure is a coincidence, not a derivation.
 
 tray_waypoints:
   ros__parameters:
     frame_id: map
-    # Outer rim lip, x by y. Must match models/seedling_tray/model.sdf's `rim`
-    # visual, sim2d/layout.py's TRAY_SX/TRAY_SY, and the Jetson's copy of this
-    # file -- tools/check_layout.py fails if any of them drift apart.
+    # Outer rim lip, x by y. Fixes where each face's marker sits, which is how
+    # nav_controller turns a marker sighting into a bearing to the dock pose.
+    # Must match models/seedling_tray/model.sdf's `rim` visual and
+    # sim2d/layout.py's TRAY_SX/TRAY_SY -- pinned by a test.
     tray_size: [1.24, 0.74]
     home:            [ 0.0, -2.3,  1.5708]   # just inside the main entrance, facing north
     refill:          [ 0.0, -2.3, -1.5708]   # same spot, facing the door (tank refill)
-    marker_ids:     [1, 2, 3, 4]        # ArUco DICT_4X4_50, one per tray
+    # ArUco DICT_4X4_50, one id per tray. Named for the DOCK face because that
+    # is where the id is anchored geometrically, but no face is privileged any
+    # more: the docking layer is gone, so a sighting of any of the tray's three
+    # stands ends the leg identically.
+    marker_ids:     [1, 2, 3, 4]
+    # Each tray carries this SAME id on three faces: the dock face and both
+    # side faces (myagv_sprayer_gazebo/tools/generate_aruco_markers.py). A tray
+    # has one identity whichever side you read it from, which is why this stays a
+    # single id per tray. cv2.aruco only decodes within ~+-20..25 deg of a
+    # marker's normal, so one face left each tray unreadable from most approach
+    # directions. The face opposite the dock is bare: it looks at a wall 0.41 m
+    # away and the robot needs 0.657 m to stand in its cone.
     tray_names:      ["baki_1_barat_laut", "baki_2_timur_laut", "baki_3_barat_daya", "baki_4_timur_daya"]
     # x, y, yaw
     baki_1_barat_laut: [-2.2,  1.40,  1.5708]

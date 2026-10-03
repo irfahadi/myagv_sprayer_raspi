@@ -30,7 +30,7 @@ berhenti, bukan meluncur dengan perintah terakhir.
    │                                │        │                                  │
    │  driver myAGV  → /odom, TF     │        │  nav_controller_node             │
    │  ydlidar       → /scan  ───────┼───────▶│  vfh_ql·cql·sarsa·astar·dstar    │
-   │  camera_stream → JPEG   ───────┼───────▶│  aruco_detector + visual_servo   │
+   │  camera_stream → JPEG   ───────┼───────▶│  aruco_detector (pose marker)    │
    │  map_server    → /map   ───────┼───────▶│  tray_detector (identitas)       │
    │  localization  → TF map→odom   │        │  relay · tank · spray_manager    │
    │  cmd_vel_watchdog ◀── /cmd_vel_nav ─────┤  mission_node                    │
@@ -43,7 +43,7 @@ berhenti, bukan meluncur dengan perintah terakhir.
 | paket | isi |
 |---|---|
 | `myagv_sprayer_description` | URDF/xacro myAGV (4 roda mecanum, LiDAR, kamera di puncak tiang nozzle) + payload sprayer (LiPo, buck, relai, Jetson, tangki 1 L + HC-SR04, pompa, nozzle TeeJet) |
-| `myagv_sprayer_gazebo` | World **`nursery_room.world`** ruang persemaian 8 × 6 m sesuai denah, **plus marker ArUco di muka tiap baki**, dan `scenario_spawner_node` untuk menaruh rintangan Skenario 2 (persisten/transient) saat runtime |
+| `myagv_sprayer_gazebo` | World **`nursery_room.world`** ruang persemaian 8 × 6 m sesuai denah, **plus marker ArUco di tiga muka tiap baki** (muka dok + dua muka samping, 12 stand total), dan `scenario_spawner_node` untuk menaruh rintangan Skenario 2 (persisten/transient) saat runtime |
 | `myagv_sprayer_navigation` | `map_server_node` (pembaca .pgm/.yaml sendiri, tanpa Nav2), `localization_node` (identity / **drift** untuk eksperimen lokalisasi ad hoc / slam_toolbox), peta tersimpan, dan `tray_waypoints.yaml` |
 | `myagv_sprayer_bringup` | `hardware.launch.py`, `sim_full.launch.py`, `camera_stream_node`, `cmd_vel_watchdog_node`, `robot_health_node`, `tray_marker_node` |
 
@@ -67,7 +67,20 @@ python3 tools/generate_aruco_markers.py
 Menghasilkan model Gazebo (`models/aruco_marker_1..4/`) sekaligus berkas cetak di
 `print/`. DICT_4X4_50, sisi hitam **tepat 100 mm** — angka itu masuk ke
 `marker_length_m` di repo Jetson dan salah sedikit akan menskalakan seluruh
-estimasi jarak. Pasang di muka baki yang menghadap posisi parkir, tinggi ±0,30 m.
+estimasi jarak.
+
+Pasang **tiga stand per baki** dengan id yang sama: muka dok (yang menghadap pose
+parkir) dan kedua muka samping, tinggi ±0,30 m. Satu baki punya satu identitas
+dari sisi mana pun dibaca. Muka yang berseberangan dengan dok dibiarkan kosong —
+ia menatap dinding berjarak 0,41 m, sementara robot butuh 0,657 m untuk berdiri
+di dalam kerucut bacanya.
+
+Alasannya: `cv2.aruco` hanya mampu men-decode dalam ~±20–25° dari normal marker
+(terukur, lihat `docs/RESULTS.md` di repo Jetson), jadi satu muka per baki membuat
+baki tak terbaca dari sebagian besar arah pendekatan. Catatan jujur dari
+pengukuran: tiga muka menaikkan keterbacaan **1,84×** tetapi **tidak**
+memperbaiki navigasi — kendala pengikatnya adalah FOV horizontal kamera 69°, bukan
+muka mana yang membawa marker.
 
 ## Simulasi (PC Ubuntu 22.04, ROS 2 Humble, Gazebo Classic 11)
 
@@ -90,10 +103,25 @@ ros2 launch sprayer_bringup jetson.launch.py sim:=true algorithm:=vfh_ql auto_st
 
 ### Menjalankan skenario eksperimen
 
-Matriks skenario saat ini ada di `docs/experiment_protocol.md` (repo Jetson):
-skenario 1 (ideal) dan skenario 2 (rintangan tak terpetakan, varian persisten
-dan transient). Skenario lokalisasi-noise/stale-map/multi-target versi
-sebelumnya sudah tidak ada di protokol saat ini.
+Matriks skenario saat ini ada di `docs/experiment_protocol.md` (repo Jetson) dan
+berisi **empat** skenario bernama:
+
+| skenario | `--scenario` | code key | world ini dipakai? |
+|---|---|---|---|
+| 1 · ruang ideal | `1` | `1_ideal` | ya |
+| 2 · rintangan tak terpetakan | `2` | `2_unmapped_persistent`, `2_unmapped_transient` | ya |
+| 3 · reward bersyarat visibilitas | `4` | `4_visreward_uniform`, `4_visreward_wsn` | tidak — offline `sim2d` saja |
+| 4 · live Gazebo | — | tak ada code key | ya, lewat launch file di bawah |
+
+⚠️ **Skenario 3 dijalankan dengan `--scenario 4`, dan itu bukan salah tulis.**
+Code key di-hash ke benih tiap trial oleh `benchmark.episode_seed()`, jadi
+mengganti namanya akan meng-undi ulang semua start pose, goal dan penempatan
+rintangan — seluruh hasil di `results/` jadi tak reproducible. Angka di
+`--scenario N` adalah identifier, bukan posisi di dokumen.
+
+Skenario lokalisasi-noise/stale-map/multi-target versi sebelumnya (matriks A–E)
+sudah tidak ada di protokol saat ini; datanya diarsipkan di Appendix B
+`docs/RESULTS.md`.
 
 ```bash
 # 1: kondisi ideal, tanpa rintangan tak terpetakan
@@ -152,9 +180,16 @@ Kalibrasi kamera:
 lalu isi `fx fy cx cy` di `myagv_sprayer_bringup/config/camera.yaml` **dan** di
 `sprayer_docking/config/docking.yaml` (ArUco memakai intrinsik yang sama).
 
-Catatan mekanis: kamera bawaan myAGV dipindah ke puncak tiang nozzle (±0,50 m dari
-lantai, menunduk ±32°) dan nozzle di ±0,42 m menunduk ±14°, agar kanopi bibit
-(±0,30 m) dan marker (±0,30 m) sama-sama terlihat dari jarak parkir 0,45 m.
+Catatan mekanis: kamera bawaan myAGV dipindah ke puncak tiang nozzle (**0,46 m**
+dari lantai, menunduk 0,55 rad ≈ 31,5°) dan nozzle di ±0,42 m menunduk ±14°, agar
+kanopi bibit (±0,30 m) dan marker (±0,30 m) sama-sama terlihat dari jarak parkir
+**0,43 m** ke bibir baki.
+
+Angka kamera di atas adalah `mast_top_z` dan `rpy` `camera_joint` di
+`myagv_sprayer_description/urdf/myagv_base.xacro`, dan itulah sumber kebenarannya:
+repo Jetson menyalin ketiganya ke `docking.yaml` dan `tray_detector.yaml`, dan
+`tools/check_layout.py` gagal kalau salah satu melenceng. Dulu tertulis ±0,50 m di
+sini — itu tidak pernah cocok dengan URDF mana pun.
 
 ## Mengubah ruangan
 
@@ -162,7 +197,21 @@ Ubah `myagv_sprayer_gazebo/worlds/nursery_room.world`, lalu samakan di tiga
 tempat: `tools/generate_assets.py` (ROOM_X/ROOM_Y/TRAYS → jalankan untuk membuat
 ulang tekstur dan peta Nav), `tools/generate_aruco_markers.py` (posisi marker),
 dan `sprayer_nav/sim2d/layout.py` di repo Jetson (geometri simulator 2D). Terakhir
-perbarui `tray_waypoints.yaml` di kedua repo.
+perbarui `tray_waypoints.yaml` — **edit versi Jetson lebih dulu** (`sprayer_nav/
+config/tray_waypoints.yaml` adalah patokannya), lalu cerminkan nilainya ke copy di
+`myagv_sprayer_navigation/config/`. Copy di sini hanya ada supaya RasPi bisa
+menggambar marker RViz tanpa bergantung pada workspace Jetson.
+
+Setelah itu jalankan:
+
+```bash
+python3 src/myagv_sprayer_gazebo/tools/check_layout.py -v
+```
+
+Ia membandingkan world, URDF, `layout.py` dan YAML Jetson, lalu gagal (exit 1)
+kalau ada satu saja yang melenceng. Ini penting bukan karena kosmetik: Q-table di
+`qtables/` dilatih terhadap `layout.py`, jadi world yang tidak lagi cocok dengannya
+berarti menanyai kebijakan tentang state yang tak pernah ia lihat.
 
 ## Lisensi
 

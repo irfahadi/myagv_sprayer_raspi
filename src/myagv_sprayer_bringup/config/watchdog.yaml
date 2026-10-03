@@ -1,11 +1,16 @@
 cmd_vel_watchdog_node:
   ros__parameters:
-    input_topic: /cmd_vel_nav      # from the Jetson nav controller / visual servo
+    input_topic: /cmd_vel_nav      # the Jetson's nav_controller_node, sole source
+                                   # (the visual servo layer no longer exists)
     manual_topic: /cmd_vel_manual  # teleop wins while it is publishing
     output_topic: /cmd_vel         # the base driver subscribes here
     # If the Jetson stops publishing for longer than this, the wheels are zeroed.
-    # Keep it comfortably above one control period (10 Hz -> 0.1 s) but short
-    # enough that a lost LAN link cannot carry the robot into a tray.
+    # Keep it comfortably above one control period but short enough that a lost
+    # LAN link cannot carry the robot into a tray. NOTE: nav_controller's
+    # `control_rate` dropped 10.0 -> 3.67 Hz to match the dt the Q-table was
+    # trained at, so one period is now 0.2725 s, not 0.1 s -- this timeout is
+    # 1.8 periods of margin where it used to be 5. Still correct, much tighter:
+    # a single dropped decision cycle is now a third of the budget.
     timeout_s: 0.5
     rate_hz: 20.0
     max_linear: 0.35
